@@ -296,6 +296,7 @@ textarea.code-editor{width:100%;background:#1c1c1e;color:#e5e5ea;border:none;out
 
 /* UTILS */
 .page{display:none;}
+.fa-spin{animation:spin .6s linear infinite;}
 .page.active{display:block;animation:fadeIn .22s ease;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
 .detail-panel{display:none;}
@@ -394,7 +395,10 @@ textarea.code-editor{width:100%;background:#1c1c1e;color:#e5e5ea;border:none;out
         <div class="card">
           <div class="card-header">
             <i class="fas fa-clock"></i><h3>Recent Repositories</h3>
-            <button class="btn btn-accent" onclick="openCreateRepoModal()" style="padding:6px 11px;font-size:12px"><i class="fas fa-plus"></i> New</button>
+            <div class="card-header-actions">
+              <button class="btn btn-outline" onclick="refreshDashboard()" id="dashRefreshBtn" style="padding:6px 10px;font-size:12px" title="Refresh"><i class="fas fa-rotate-right"></i></button>
+              <button class="btn btn-accent" onclick="openCreateRepoModal()" style="padding:6px 11px;font-size:12px"><i class="fas fa-plus"></i> New</button>
+            </div>
           </div>
           <div id="dashRepos" style="overflow:hidden"><div class="loading"><div class="spinner"></div> Memuat...</div></div>
         </div>
@@ -402,11 +406,14 @@ textarea.code-editor{width:100%;background:#1c1c1e;color:#e5e5ea;border:none;out
 
       <!-- REPOS -->
       <div class="page" id="page-repos">
-        <div class="tabs" id="repoTabs">
-          <div class="tab active" onclick="switchRepoTab('all',this)">Semua</div>
-          <div class="tab" onclick="switchRepoTab('public',this)">Public</div>
-          <div class="tab" onclick="switchRepoTab('private',this)">Private</div>
-          <div class="tab" onclick="switchRepoTab('fork',this)">Forks</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <div class="tabs" id="repoTabs" style="flex:1;margin-bottom:0">
+            <div class="tab active" onclick="switchRepoTab('all',this)">Semua</div>
+            <div class="tab" onclick="switchRepoTab('public',this)">Public</div>
+            <div class="tab" onclick="switchRepoTab('private',this)">Private</div>
+            <div class="tab" onclick="switchRepoTab('fork',this)">Forks</div>
+          </div>
+          <button class="btn btn-outline" onclick="refreshRepos()" id="reposRefreshBtn" style="padding:7px 10px;font-size:13px;flex-shrink:0" title="Refresh"><i class="fas fa-rotate-right"></i></button>
         </div>
         <div id="reposList"></div>
       </div>
@@ -438,6 +445,7 @@ textarea.code-editor{width:100%;background:#1c1c1e;color:#e5e5ea;border:none;out
             </div>
             <h3 id="editorTitle" style="font-size:14px;font-weight:700;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0">File</h3>
             <button class="btn btn-outline" onclick="backToFiles()" style="padding:7px 11px;font-size:12px;border-radius:9px" title="Kembali ke file list"><i class="fas fa-arrow-left"></i></button>
+            <button class="btn btn-outline" onclick="reloadEditorFile()" style="padding:7px 11px;font-size:12px;border-radius:9px" title="Reload file dari GitHub"><i class="fas fa-rotate-right"></i></button>
             <button class="btn btn-green" onclick="saveFile()" style="padding:7px 13px;font-size:12px;font-weight:700;border-radius:9px"><i class="fas fa-floppy-disk"></i> Simpan</button>
           </div>
           <!-- Commit message -->
@@ -530,7 +538,10 @@ textarea.code-editor{width:100%;background:#1c1c1e;color:#e5e5ea;border:none;out
         <div class="card">
           <div class="card-header">
             <i class="fab fa-github-alt"></i><h3>Gists</h3>
-            <button class="btn btn-accent" onclick="openCreateGistModal()" style="padding:6px 11px;font-size:12px"><i class="fas fa-plus"></i> New</button>
+            <div class="card-header-actions">
+              <button class="btn btn-outline" onclick="loadGists()" id="gistsRefreshBtn" style="padding:6px 10px;font-size:12px" title="Refresh"><i class="fas fa-rotate-right"></i></button>
+              <button class="btn btn-accent" onclick="openCreateGistModal()" style="padding:6px 11px;font-size:12px"><i class="fas fa-plus"></i> New</button>
+            </div>
           </div>
           <div id="gistsList"><div class="loading"><div class="spinner"></div> Memuat...</div></div>
         </div>
@@ -727,6 +738,7 @@ function renderDetailHeader(){
         <span class="branch-pill"><i class="fas fa-code-branch"></i> ${r.default_branch}</span>
         <span class="tag ${r.private?'prv':'pub'}">${r.private?'🔒':'🌐'}</span>
         <a href="${r.html_url}" target="_blank" class="btn btn-outline" style="padding:6px 10px;font-size:12px"><i class="fab fa-github"></i></a>
+        <button class="btn btn-outline" onclick="refreshRepoDetail()" style="padding:6px 10px;font-size:12px" title="Refresh"><i class="fas fa-rotate-right"></i></button>
         <button class="btn btn-red" style="padding:6px 10px;font-size:12px" onclick="confirmDeleteRepo()"><i class="fas fa-trash"></i></button>
       </div>
     </div>
@@ -842,6 +854,7 @@ function renderFiles(items,curPath){
     <button class="btn btn-accent" onclick="openCreateFileModal('${curPath}')" style="font-size:12px;padding:7px 11px"><i class="fas fa-plus"></i> File</button>
     <button class="btn btn-outline" onclick="openCreateFolderModal('${curPath}')" style="font-size:12px;padding:7px 11px"><i class="fas fa-folder-plus"></i> Folder</button>
     <button class="btn btn-outline" onclick="openUploadModal('${curPath}')" style="font-size:12px;padding:7px 11px"><i class="fas fa-upload"></i> Upload</button>
+    <button class="btn btn-outline" onclick="loadFiles('${curPath}')" style="font-size:12px;padding:7px 10px;margin-left:auto" title="Refresh"><i class="fas fa-rotate-right"></i></button>
   </div>`;
   el.innerHTML=`<div class="card">${pb}${fl}${acts}</div>`;
 }
@@ -1262,7 +1275,8 @@ function renderActions(wfs,runs){
   let h=`<div class="card" style="margin-bottom:12px">
     <div class="card-header">
       <i class="fas fa-list"></i><h3>Workflows (${wfs.length})</h3>
-      <button class="btn btn-accent" onclick="openCreateWfModal()" style="padding:6px 11px;font-size:12px;margin-left:auto"><i class="fas fa-plus"></i> Buat</button>
+      <button class="btn btn-outline" onclick="loadActions()" style="padding:6px 10px;font-size:12px;margin-left:auto" title="Refresh"><i class="fas fa-rotate-right"></i></button>
+      <button class="btn btn-accent" onclick="openCreateWfModal()" style="padding:6px 11px;font-size:12px"><i class="fas fa-plus"></i> Buat</button>
     </div>`;
   if(!wfs.length){
     h+=`<div class="empty" style="padding:28px"><i class="fas fa-file-code"></i><h3>Belum ada workflow</h3><p>Buat file .github/workflows/*.yml</p></div>`;
@@ -1281,7 +1295,7 @@ function renderActions(wfs,runs){
   h+=`</div>`;
 
   // RUN HISTORY
-  h+=`<div class="card"><div class="card-header"><i class="fas fa-history"></i><h3>Run History</h3></div>`;
+  h+=`<div class="card"><div class="card-header"><i class="fas fa-history"></i><h3>Run History</h3><button class="btn btn-outline" onclick="loadActions()" style="padding:6px 10px;font-size:12px;margin-left:auto" title="Refresh"><i class="fas fa-rotate-right"></i></button></div>`;
   if(!runs.length){
     h+=`<div class="empty" style="padding:28px"><i class="fas fa-clock"></i><h3>Belum ada run</h3></div>`;
   } else {
@@ -1382,6 +1396,7 @@ async function loadBranches(){
     }
     el.innerHTML=`<div class="card">
       <div class="card-header"><i class="fas fa-code-branch"></i><h3>Branches (${branches.length})</h3>
+        <button class="btn btn-outline" onclick="loadBranches()" style="padding:6px 10px;font-size:12px;margin-left:auto" title="Refresh"><i class="fas fa-rotate-right"></i></button>
         <button class="btn btn-accent" onclick="openCreateBranchModal()" style="padding:6px 11px;font-size:12px"><i class="fas fa-plus"></i> Baru</button>
       </div>
       ${branches.map(b=>`<div class="wf-item">
@@ -2012,6 +2027,42 @@ async function doCreateGist(){
     await api('/gists','POST',{description:document.getElementById('gDesc').value,public:document.getElementById('gPub').value==='true',files:{[fname]:{content:document.getElementById('gContent').value||' '}}});
     toast('Gist dibuat! 🎉','ok');closeModal();loadGists();
   }catch(e){toast('Gagal: '+e.message,'err');}
+}
+
+// REFRESH FUNCTIONS
+async function refreshDashboard(){
+  const btn=document.getElementById('dashRefreshBtn');
+  if(btn){btn.disabled=true;btn.innerHTML='<i class="fas fa-rotate-right fa-spin"></i>';}
+  await loadRepos();
+  if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-rotate-right"></i>';}
+  toast('Dashboard diperbarui ✅','ok');
+}
+async function refreshRepos(){
+  const btn=document.getElementById('reposRefreshBtn');
+  if(btn){btn.disabled=true;btn.innerHTML='<i class="fas fa-rotate-right fa-spin"></i>';}
+  await loadRepos();
+  if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-rotate-right"></i>';}
+  toast('Daftar repo diperbarui ✅','ok');
+}
+async function refreshRepoDetail(){
+  if(!REPO)return;
+  try{
+    REPO=await api(`/repos/${REPO.full_name}`);
+    BRANCH=REPO.default_branch||'main';
+    renderDetailHeader();
+    // Refresh tab yang sedang aktif
+    if(DETAIL_TAB==='files')loadFiles(CUR_PATH.join('/'));
+    else if(DETAIL_TAB==='actions')loadActions();
+    else if(DETAIL_TAB==='branches')loadBranches();
+    else if(DETAIL_TAB==='settings')renderSettings();
+    toast('Repo diperbarui ✅','ok');
+  }catch(e){toast('Gagal refresh: '+e.message,'err');}
+}
+async function reloadEditorFile(){
+  if(!EDIT_FILE||!EDIT_FILE.path)return;
+  if(!confirm('Reload file dari GitHub? Perubahan yang belum disimpan akan hilang.'))return;
+  toast('Memuat ulang file...','info');
+  await openFile(EDIT_FILE.path);
 }
 
 // NAVIGATION
