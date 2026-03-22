@@ -680,7 +680,7 @@ function repoCardHTML(r){
   return`<div class="repo-card" onclick="openRepo('${r.full_name}')">
     <div class="rc-icon">${r.fork?'🍴':'📁'}</div>
     <div class="rc-info">
-      <div class="rc-name">${r.full_name}</div>
+      <div class="rc-name">${r.name}</div>
       <div class="rc-desc">${r.description||'Tidak ada deskripsi'}</div>
       <div class="rc-meta">
         <span class="tag ${r.private?'prv':'pub'}">${r.private?'🔒 Private':'🌐 Public'}</span>
