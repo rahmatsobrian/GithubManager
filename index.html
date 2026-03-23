@@ -6,10 +6,19 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>GitHub Manager</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<!-- Preconnect untuk percepat DNS -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<!-- Load font async supaya tidak blocking render -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" media="print" onload="this.media='all'">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css" media="print" onload="this.media='all'">
+<!-- Fallback font jika belum load -->
+<noscript>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css">
+</noscript>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" defer></script>
 <style>
 :root {
   --bg: #f2f2f7;
@@ -630,11 +639,15 @@ let TOKEN='',USER=null,REPOS=[],REPO=null,EDIT_FILE=null,BRANCH='main';
 let REPO_TAB='all',DETAIL_TAB='files',CUR_PATH=[];
 
 const GH='https://api.github.com';
-const H=()=>({'Authorization':`Bearer ${TOKEN}`,'Accept':'application/vnd.github+json','Content-Type':'application/json'});
+const H=()=>({
+  'Authorization':`Bearer ${TOKEN}`,
+  'Accept':'application/vnd.github+json',
+  'Content-Type':'application/json'
+});
 
 // API
 async function api(path,method='GET',body=null){
-  const o={method,headers:H()};
+  const o={method,headers:H(),cache:'no-store'};
   if(body)o.body=JSON.stringify(body);
   const r=await fetch(GH+path,o);
   if(r.status===204)return null;
@@ -1330,16 +1343,21 @@ async function loadActions(){
 }
 
 async function refreshRunsOnly(){
-  // Refresh hanya bagian run history tanpa rebuild seluruh halaman
   if(!REPO)return;
   if(ACTION_POLL_TIMER){clearTimeout(ACTION_POLL_TIMER);ACTION_POLL_TIMER=null;}
+  // Tampilkan spinner di tombol refresh
+  const btn=document.getElementById('actRefreshBtn');
+  if(btn){btn.innerHTML='<i class="fas fa-rotate-right fa-spin"></i>';btn.disabled=true;}
   try{
     const runR=await api(`/repos/${REPO.full_name}/actions/runs?per_page=30`);
     const runs=runR?.workflow_runs||[];
     renderRunHistory(runs);
     const hasActive=runs.some(r=>r.status==='in_progress'||r.status==='queued');
     if(hasActive) ACTION_POLL_TIMER=setTimeout(()=>refreshRunsOnly(),4000);
-  }catch(e){}
+  }catch(e){toast('Gagal refresh: '+e.message,'err');}
+  finally{
+    if(btn){btn.innerHTML='<i class="fas fa-rotate-right"></i>';btn.disabled=false;}
+  }
 }
 
 function renderActions(wfs,runs){
@@ -2361,7 +2379,6 @@ async function doCreateGist(){
 async function refreshDashboard(){
   const btn=document.getElementById('dashRefreshBtn');
   if(btn){btn.disabled=true;btn.innerHTML='<i class="fas fa-rotate-right fa-spin"></i>';}
-  REPOS=null; // force clear cache
   await loadRepos();
   if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-rotate-right"></i>';}
   toast('Dashboard diperbarui ✅','ok');
@@ -2369,7 +2386,6 @@ async function refreshDashboard(){
 async function refreshRepos(){
   const btn=document.getElementById('reposRefreshBtn');
   if(btn){btn.disabled=true;btn.innerHTML='<i class="fas fa-rotate-right fa-spin"></i>';}
-  REPOS=null; // force clear cache
   await loadRepos();
   if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-rotate-right"></i>';}
   toast('Daftar repo diperbarui ✅','ok');
