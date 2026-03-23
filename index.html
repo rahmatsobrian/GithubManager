@@ -1989,8 +1989,10 @@ let UP_BASE='';
 function openUploadModal(base=''){
   UP_BASE=base?base.replace(/\/$/,''):'';
   UP_FILES=[];UP_MODE='single';
-  showModal('📤 Upload File',buildUploadHTML(),[]);
-  setTimeout(()=>{bindUploadEvents();setUpMode('single');},60);
+  showModal('📤 Upload File',buildUploadHTML(),[], ()=>{
+    bindUploadEvents();
+    setUpMode('single');
+  });
 }
 function openBulkUploadModal(base=''){openUploadModal(base);}
 
@@ -2091,10 +2093,10 @@ function setUpMode(mode){
     const t=document.getElementById('upTab-'+m);
     if(t){t.style.background=m===mode?'var(--bg2)':'transparent';t.style.color=m===mode?'var(--text)':'var(--text3)';t.style.boxShadow=m===mode?'0 1px 4px rgba(0,0,0,.1)':'';}
   });
-  document.getElementById('upIcon').textContent=cfg.icon;
-  document.getElementById('upTitle').textContent=cfg.title;
-  document.getElementById('upBadge').textContent=cfg.badge;
-  document.getElementById('upModeDesc').innerHTML='<i class="fas fa-circle-info" style="color:var(--accent);margin-right:6px"></i>'+cfg.desc;
+  const iconEl=document.getElementById('upIcon');if(iconEl)iconEl.textContent=cfg.icon;
+  const titleEl=document.getElementById('upTitle');if(titleEl)titleEl.textContent=cfg.title;
+  const badgeEl=document.getElementById('upBadge');if(badgeEl)badgeEl.textContent=cfg.badge;
+  const descEl=document.getElementById('upModeDesc');if(descEl)descEl.innerHTML='<i class="fas fa-circle-info" style="color:var(--accent);margin-right:6px"></i>'+cfg.desc;
   inp.accept=cfg.accept;inp.multiple=cfg.multi;
   if(mode==='folder'){inp.setAttribute('webkitdirectory','');inp.setAttribute('directory','');}
   else{inp.removeAttribute('webkitdirectory');inp.removeAttribute('directory');}
@@ -2104,11 +2106,16 @@ function setUpMode(mode){
 }
 
 function bindUploadEvents(){
-  const dz=document.getElementById('upDropzone');const inp=document.getElementById('upInput');if(!dz||!inp)return;
+  const dz=document.getElementById('upDropzone');
+  const inp=document.getElementById('upInput');
+  if(!dz||!inp)return;
+  // Clone untuk hapus event listener lama (jika ada)
+  const newInp=inp.cloneNode(true);
+  inp.parentNode.replaceChild(newInp,inp);
   dz.addEventListener('dragover',e=>{e.preventDefault();dz.style.borderColor='var(--green)';dz.style.background='rgba(52,199,89,.07)';});
   dz.addEventListener('dragleave',()=>{dz.style.borderColor='var(--accent)';dz.style.background='rgba(0,122,255,.04)';});
   dz.addEventListener('drop',e=>{e.preventDefault();dz.style.borderColor='var(--accent)';dz.style.background='rgba(0,122,255,.04)';handleUpFiles(Array.from(e.dataTransfer.files));});
-  inp.addEventListener('change',()=>handleUpFiles(Array.from(inp.files)));
+  newInp.addEventListener('change',()=>handleUpFiles(Array.from(newInp.files)));
 }
 
 async function handleUpFiles(rawFiles){
@@ -2143,7 +2150,12 @@ async function handleUpFiles(rawFiles){
 }
 
 function upReadBuf(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=e=>res(e.target.result);r.onerror=rej;r.readAsArrayBuffer(file);});}
-function upAb2b64(buf){const b=new Uint8Array(buf);let s='';for(let i=0;i<b.length;i+=8192)s+=String.fromCharCode(...b.subarray(i,Math.min(i+8192,b.length)));return btoa(s);}
+function upAb2b64(buf){
+  const b=new Uint8Array(buf);
+  let s='';
+  for(let i=0;i<b.length;i++) s+=String.fromCharCode(b[i]);
+  return btoa(s);
+}
 
 function renderUpFileList(){
   const wrap=document.getElementById('upFileList');const items=document.getElementById('upFileItems');
@@ -2477,12 +2489,11 @@ function closeSidebar(){
 }
 
 // MODAL
-function showModal(title,body,buttons=[]){
+function showModal(title,body,buttons=[],onReady=null){
   const overlay=document.getElementById('modalOverlay');
   const titleEl=document.getElementById('modalTitle');
   const bodyEl=document.getElementById('modalBody');
   const footerEl=document.getElementById('modalFooter');
-  // Simpan konten untuk di-render setelah animasi selesai
   titleEl.textContent=title;
   bodyEl.innerHTML=`<div style="padding:20px 0;display:flex;flex-direction:column;gap:12px">
     <div style="height:14px;background:var(--bg3);border-radius:7px;width:40%"></div>
@@ -2493,12 +2504,11 @@ function showModal(title,body,buttons=[]){
     <div style="height:44px;background:var(--bg3);border-radius:10px"></div>
   </div>`;
   footerEl.innerHTML='';
-  // Tampilkan overlay dulu — animasi berjalan dengan skeleton ringan
   overlay.classList.add('show');
-  // Render konten asli setelah animasi selesai (~260ms)
   setTimeout(()=>{
     bodyEl.innerHTML=body;
     footerEl.innerHTML=buttons.map(b=>`<button class="btn ${b.cls||'btn-accent'}" onclick="${b.fn}">${b.label}</button>`).join('');
+    if(onReady) onReady();
   }, 260);
 }
 function closeModal(){
