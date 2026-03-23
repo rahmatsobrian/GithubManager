@@ -1935,75 +1935,107 @@ async function doUpload(){
   addLog('info',`🚀 Upload ${total} file → ${REPO.full_name}@${BRANCH}`);
   if(destFolder)addLog('info',`📁 Tujuan: /${destFolder}`);
   // Build paths array
-  const files=toUpload.map((f,i)=>{
+  let files=toUpload.map((f,i)=>{
     let fname=UP_MODE==='single'&&customName?customName:f.name;
     let rpath=(UP_MODE==='folder'||UP_MODE==='zip')?f.path:fname;
     if(destFolder)rpath=destFolder+'/'+rpath;
     return{rpath:rpath.replace(/^\/+/,''),content:f.content};
   });
-  // Try Git Trees API (1 commit = 0 workflow spam)
+  // Git Data API: 1 commit untuk semua file = 0 workflow spam
+  // Persis seperti: git add . && git commit -m "msg" && git push
   try{
+    // Step 1: Cek apakah repo kosong
+    let baseSha=null, baseTree=null;
+    try{
+      const refData=await api(`/repos/${REPO.full_name}/git/ref/heads/${BRANCH}`);
+      baseSha=refData.object.sha;
+      const baseCommit=await api(`/repos/${REPO.full_name}/git/commits/${baseSha}`);
+      baseTree=baseCommit.tree.sha;
+    }catch(refErr){
+      // Repo benar-benar kosong - GitHub Git Data API (blobs/trees) tidak bisa dipakai
+      // sama sekali sebelum ada 1 commit. Satu-satunya cara: gunakan Contents API
+      // untuk file pertama yang akan otomatis init repo + buat HEAD.
+      addLog('info','📭 Repo kosong → inisialisasi dengan file pertama...');
+      const firstFile=files[0];
+      bar.style.width='5%';
+      // Upload file pertama via Contents API (ini akan init repo sekaligus)
+      await api(`/repos/${REPO.full_name}/contents/${firstFile.rpath}`,'PUT',{
+        message:msg,
+        content:upAb2b64(firstFile.content),
+        branch:BRANCH
+      });
+      addLog('ok',`✅ Init: ${firstFile.rpath}`);
+      bar.style.width='10%';
+      // Sekarang repo sudah punya HEAD, ambil ref-nya
+      const refData=await api(`/repos/${REPO.full_name}/git/ref/heads/${BRANCH}`);
+      baseSha=refData.object.sha;
+      const baseCommit=await api(`/repos/${REPO.full_name}/git/commits/${baseSha}`);
+      baseTree=baseCommit.tree.sha;
+      // Kalau hanya 1 file, selesai
+      if(files.length===1){
+        bar.style.width='100%';
+        const repoUrl=`https://github.com/${REPO.full_name}`;
+        addLog('ok',`🎉 1 file berhasil diupload!`);
+        addLog('info',`<a href="${repoUrl}" target="_blank" style="color:var(--accent)">🔗 Buka repo di GitHub →</a>`);
+        toast(`✅ 1 file diupload!`,'ok');
+        if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-upload"></i> Upload Lagi';}
+        REPO=await api(`/repos/${REPO.full_name}`);BRANCH=REPO.default_branch||'main';
+        loadFiles(CUR_PATH.join('/'));
+        return;
+      }
+      // Lanjutkan sisa file (index 1 ke atas) via Trees API dalam 1 commit
+      addLog('info',`⚙️ Upload sisa ${files.length-1} file dalam 1 commit...`);
+      files=files.slice(1);
+    }
+
+    // Step 2: Buat blobs untuk semua file (atau sisa file)
     addLog('info','⚙️ Membuat blobs...');
     const treeItems=[];
     for(let i=0;i<files.length;i++){
       const f=files[i];
-      bar.style.width=((i+0.5)/files.length*80)+'%';
+      bar.style.width=(10+(i+0.5)/files.length*65)+'%';
       const blobResp=await api(`/repos/${REPO.full_name}/git/blobs`,'POST',{
         content:upAb2b64(f.content),encoding:'base64'
       });
       treeItems.push({path:f.rpath,mode:'100644',type:'blob',sha:blobResp.sha});
       addLog('ok',`📦 ${f.rpath}`);
     }
-    bar.style.width='82%';
+
+    // Step 3: Buat tree
+    bar.style.width='80%';
     addLog('info','🌳 Membuat tree...');
-    // Get current HEAD
-    const refData=await api(`/repos/${REPO.full_name}/git/ref/heads/${BRANCH}`);
-    const baseSha=refData.object.sha;
-    const baseCommit=await api(`/repos/${REPO.full_name}/git/commits/${baseSha}`);
-    const baseTree=baseCommit.tree.sha;
-    // Create tree
-    const newTree=await api(`/repos/${REPO.full_name}/git/trees`,'POST',{base_tree:baseTree,tree:treeItems});
-    bar.style.width='90%';
+    const newTree=await api(`/repos/${REPO.full_name}/git/trees`,'POST',{
+      base_tree:baseTree,tree:treeItems
+    });
+
+    // Step 4: Buat commit
+    bar.style.width='88%';
     addLog('info','📝 Membuat commit...');
     const newCommit=await api(`/repos/${REPO.full_name}/git/commits`,'POST',{
       message:msg,tree:newTree.sha,parents:[baseSha]
     });
+
+    // Step 5: Update ref branch
     bar.style.width='95%';
     addLog('info','🔀 Update branch...');
     await api(`/repos/${REPO.full_name}/git/refs/heads/${BRANCH}`,'PATCH',{sha:newCommit.sha});
+
     bar.style.width='100%';
     const repoUrl=`https://github.com/${REPO.full_name}`;
     addLog('ok',`🎉 ${total} file berhasil diupload dalam <strong>1 commit</strong>!`);
     addLog('info',`<a href="${repoUrl}" target="_blank" style="color:var(--accent)">🔗 Buka repo di GitHub →</a>`);
-    toast(`✅ ${total} file diupload (1 commit)!`,'ok');
+    toast(`✅ ${total} file diupload (1 commit, 0 spam)!`,'ok');
     if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-upload"></i> Upload Lagi';}
-    if(REPO.size===0){REPO=await api(`/repos/${REPO.full_name}`);BRANCH=REPO.default_branch||'main';}
+    // Refresh repo info
+    REPO=await api(`/repos/${REPO.full_name}`);
+    BRANCH=REPO.default_branch||'main';
     loadFiles(CUR_PATH.join('/'));
-  } catch(treeErr){
-    // Repo might be empty (no HEAD), fallback to single-file PUT but in batch via single commit using content API
-    addLog('warn',`⚠️ Trees API gagal (${treeErr.message}), fallback ke mode standard...`);
+  }catch(err){
+    // Truly unexpected error
+    addLog('err',`❌ Upload gagal: ${err.message}`);
+    toast('Upload gagal: '+err.message,'err');
+    if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-upload"></i> Upload Lagi';}
     bar.style.width='0%';
-    let ok=0,fail=0;
-    for(let i=0;i<files.length;i++){
-      const f=files[i];
-      bar.style.width=((i+0.5)/files.length*100)+'%';
-      try{
-        let sha=null;
-        try{const ex=await api(`/repos/${REPO.full_name}/contents/${f.rpath}`);sha=ex.sha;}catch{}
-        const body={message:msg,content:upAb2b64(f.content),branch:BRANCH};if(sha)body.sha=sha;
-        await api(`/repos/${REPO.full_name}/contents/${f.rpath}`,'PUT',body);
-        addLog('ok',`✅ ${f.rpath}`);ok++;
-      }catch(e){addLog('err',`❌ ${f.rpath}: ${e.message}`);fail++;}
-      if(i<files.length-1)await new Promise(r=>setTimeout(r,100));
-    }
-    bar.style.width='100%';
-    const repoUrl=`https://github.com/${REPO.full_name}`;
-    addLog(fail===0?'ok':'err',`${fail===0?'🎉':'⚠️'} Selesai: ${ok} berhasil${fail?' · '+fail+' gagal':''}`);
-    if(fail===0)addLog('info',`<a href="${repoUrl}" target="_blank" style="color:var(--accent)">🔗 Buka repo di GitHub →</a>`);
-    toast(fail===0?`✅ ${ok} file berhasil diupload`:`⚠️ ${ok} berhasil, ${fail} gagal`,fail===0?'ok':'warn');
-    if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-upload"></i> Upload Lagi';}
-    if(REPO.size===0){REPO=await api(`/repos/${REPO.full_name}`);BRANCH=REPO.default_branch||'main';}
-    loadFiles(CUR_PATH.join('/'));
   }
 }
 
