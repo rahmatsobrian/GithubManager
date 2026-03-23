@@ -7,7 +7,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>GitHub Manager</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.0/css/all.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
 :root {
@@ -253,24 +254,40 @@ textarea.code-editor{width:100%;background:#1c1c1e;color:#e5e5ea;border:none;out
 .wf-acts{display:flex;gap:6px;flex-shrink:0;}
 
 /* MODAL - bottom sheet on mobile */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);z-index:500;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:500;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .18s;}
 .modal-overlay.show{opacity:1;pointer-events:all;}
-.modal{background:var(--bg2);width:100%;max-width:560px;border-radius:20px 20px 0 0;max-height:92vh;overflow-y:auto;border:1px solid var(--border);box-shadow:0 -4px 40px rgba(0,0,0,.15);transform:translateY(50px);transition:transform .28s cubic-bezier(.34,1.2,.64,1);}
+.modal{background:var(--bg2);width:100%;max-width:560px;border-radius:20px 20px 0 0;max-height:92vh;overflow-y:auto;border:1px solid var(--border);box-shadow:0 -4px 40px rgba(0,0,0,.15);transform:translateY(60px);transition:transform .22s cubic-bezier(.25,.8,.25,1);will-change:transform;contain:layout style;}
 .modal-overlay.show .modal{transform:translateY(0);}
 @media(min-width:600px){
   .modal-overlay{align-items:center;}
-  .modal{border-radius:20px;max-height:85vh;transform:scale(.95) translateY(10px);}
-  .modal-overlay.show .modal{transform:scale(1) translateY(0);}
+  .modal{border-radius:20px;max-height:85vh;transform:scale(.94);}
+  .modal-overlay.show .modal{transform:scale(1);}
 }
 .modal-drag{width:40px;height:4px;background:var(--bg3);border-radius:99px;margin:10px auto 0;}
 @media(min-width:600px){.modal-drag{display:none;}}
 .modal-header{display:flex;align-items:center;padding:16px 18px 12px;border-bottom:1px solid var(--border);}
 .modal-header h3{font-weight:700;font-size:16px;flex:1;}
 .modal-body{padding:16px 18px;}
-.modal-footer{padding:12px 18px 20px;display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;}
-@media(max-width:400px){.modal-footer{flex-direction:column-reverse;}.modal-footer .btn{width:100%;justify-content:center;}}
+.modal-footer{padding:10px 18px 20px;display:flex;flex-direction:column;gap:8px;}
+.modal-footer .btn{width:100%;justify-content:center;padding:13px;font-size:15px;}
+@media(min-width:600px){.modal-footer{flex-direction:row;justify-content:flex-end;}.modal-footer .btn{width:auto;padding:10px 20px;font-size:14px;}}
 
-/* BOTTOM NAV */
+/* CONFIRM DIALOG */
+.confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:600;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .18s;}
+.confirm-overlay.show{opacity:1;pointer-events:all;}
+.confirm-box{background:var(--bg2);border-radius:20px;width:100%;max-width:320px;box-shadow:0 20px 60px rgba(0,0,0,.25);border:1px solid var(--border);transform:scale(.92);transition:transform .2s cubic-bezier(.34,1.4,.64,1);}
+.confirm-overlay.show .confirm-box{transform:scale(1);}
+.confirm-box-icon{text-align:center;padding:24px 20px 0;font-size:38px;line-height:1;}
+.confirm-box-title{text-align:center;padding:10px 20px 4px;font-size:16px;font-weight:700;color:var(--text);}
+.confirm-box-msg{text-align:center;padding:0 20px 20px;font-size:13.5px;color:var(--text3);line-height:1.5;}
+.confirm-box-btns{display:flex;border-top:1px solid var(--border);}
+.confirm-box-btns button{flex:1;padding:14px 8px;border:none;background:transparent;font-size:15px;font-weight:600;cursor:pointer;transition:background .12s;}
+.confirm-box-btns button:first-child{color:var(--text3);border-right:1px solid var(--border);border-radius:0 0 0 20px;}
+.confirm-box-btns button:first-child:active{background:var(--bg3);}
+.confirm-box-btns button:last-child{border-radius:0 0 20px 0;}
+.confirm-box-btns button.confirm-ok{color:var(--red);}
+.confirm-box-btns button.confirm-ok-blue{color:var(--accent);}
+.confirm-box-btns button:last-child:active{background:var(--bg3);}
 .bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--surface);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border-top:1px solid var(--border);z-index:180;padding-bottom:env(safe-area-inset-bottom,0);}
 .bottom-nav-inner{display:flex;height:56px;}
 .bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;padding:4px;border-radius:10px;transition:all .15s;color:var(--text4);}
@@ -594,6 +611,19 @@ textarea.code-editor{width:100%;background:#1c1c1e;color:#e5e5ea;border:none;out
 
 <div id="toast-container"></div>
 
+<!-- CONFIRM DIALOG -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box" id="confirmBox">
+    <div class="confirm-box-icon" id="confirmIcon">⚠️</div>
+    <div class="confirm-box-title" id="confirmTitle">Konfirmasi</div>
+    <div class="confirm-box-msg" id="confirmMsg"></div>
+    <div class="confirm-box-btns">
+      <button id="confirmCancel" onclick="_confirmResolve(false)">Batal</button>
+      <button id="confirmOk" class="confirm-ok" onclick="_confirmResolve(true)">Hapus</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // STATE
 let TOKEN='',USER=null,REPOS=[],REPO=null,EDIT_FILE=null,BRANCH='main';
@@ -721,8 +751,6 @@ function repoCardHTML(r){
     </div>
   </div>`;
 }
-
-// REPO DETAIL
 async function openRepo(fullName){
   document.querySelectorAll('.srepo-item').forEach(i=>i.classList.remove('active'));
   // Show page FIRST so all DOM elements exist
@@ -747,33 +775,62 @@ async function openRepo(fullName){
 }
 function renderDetailHeader(){
   const r=REPO;
+  // GitHub API size is in KB, but often 0 for new repos — show what we have
+  const sizeKB=r.size||0;
+  const sizeStr=sizeKB===0?'< 1 KB':sizeKB<1024?`${sizeKB} KB`:`${(sizeKB/1024).toFixed(1)} MB`;
+  const privBadge=r.private
+    ?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:10.5px;font-weight:600;padding:3px 8px;border-radius:6px;background:rgba(255,149,0,.12);color:var(--orange);flex-shrink:0"><i class="fas fa-lock" style="font-size:9px"></i> Private</span>`
+    :`<span style="display:inline-flex;align-items:center;gap:3px;font-size:10.5px;font-weight:600;padding:3px 8px;border-radius:6px;background:rgba(52,199,89,.12);color:var(--green);flex-shrink:0"><i class="fas fa-globe" style="font-size:9px"></i> Public</span>`;
   document.getElementById('detailHeader').innerHTML=`
-    <div class="card-header">
-      <i class="fas fa-book" style="color:var(--accent)"></i>
-      <h3>${r.name}</h3>
-      <div class="card-header-actions">
-        <span class="branch-pill"><i class="fas fa-code-branch"></i> ${r.default_branch}</span>
-        <span class="tag ${r.private?'prv':'pub'}">${r.private?'🔒':'🌐'}</span>
-        <a href="${r.html_url}" target="_blank" class="btn btn-outline" style="padding:6px 10px;font-size:12px"><i class="fab fa-github"></i></a>
-        <button class="btn btn-outline" onclick="refreshRepoDetail()" style="padding:6px 10px;font-size:12px" title="Refresh"><i class="fas fa-rotate-right"></i></button>
-        <button class="btn btn-red" style="padding:6px 10px;font-size:12px" onclick="confirmDeleteRepo()"><i class="fas fa-trash"></i></button>
+    <div style="padding:12px 15px;border-bottom:1px solid var(--border);background:var(--bg4)">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <i class="fas fa-book" style="color:var(--accent);font-size:14px;flex-shrink:0"></i>
+        <span style="font-size:14px;font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.name}</span>
+        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+          <span class="branch-pill" style="font-size:11px"><i class="fas fa-code-branch"></i> ${r.default_branch}</span>
+          ${privBadge}
+          <a href="${r.html_url}" target="_blank" class="btn-icon" title="Buka di GitHub"><i class="fab fa-github"></i></a>
+          <button class="btn-icon" onclick="refreshRepoDetail()" title="Refresh"><i class="fas fa-rotate-right"></i></button>
+          <button class="btn-icon" style="color:var(--red);border-color:rgba(255,59,48,.35)" onclick="confirmDeleteRepo()" title="Hapus Repo"><i class="fas fa-trash"></i></button>
+        </div>
       </div>
     </div>
-    <div class="card-body">
-      <div class="flex flex-wrap gap-8" style="font-size:12.5px;color:var(--text4)">
-        <span><i class="fas fa-star"></i> ${r.stargazers_count}</span>
-        <span><i class="fas fa-code-fork"></i> ${r.forks_count}</span>
-        <span><i class="fas fa-eye"></i> ${r.watchers_count}</span>
-        <span><i class="fas fa-hdd"></i> ${(r.size/1024).toFixed(1)}MB</span>
-        ${r.language?`<span><i class="fas fa-code"></i> ${r.language}</span>`:''}
-        <span><i class="fas fa-clock"></i> ${timeAgo(r.updated_at)}</span>
-      </div>
-      ${r.description?`<p style="margin-top:8px;font-size:13px;color:var(--text2)">${r.description}</p>`:''}
-      ${r.homepage?`<a href="${r.homepage}" target="_blank" style="font-size:12px;display:inline-flex;align-items:center;gap:4px;margin-top:6px"><i class="fas fa-link"></i>${r.homepage}</a>`:''}
-    </div>`;
+    <div style="padding:10px 15px;display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--text4);align-items:center;border-bottom:1px solid var(--border)">
+      <span title="Stars" style="display:flex;align-items:center;gap:4px"><i class="fas fa-star" style="color:#f1c40f"></i> ${r.stargazers_count}</span>
+      <span title="Forks" style="display:flex;align-items:center;gap:4px"><i class="fas fa-code-fork"></i> ${r.forks_count}</span>
+      <span title="Watchers" style="display:flex;align-items:center;gap:4px"><i class="fas fa-eye"></i> ${r.subscribers_count??r.watchers_count}</span>
+      <span title="Ukuran" style="display:flex;align-items:center;gap:4px" id="repoSizeSpan"><i class="fas fa-database"></i> ${sizeStr}</span>
+      ${r.language?`<span title="Bahasa" style="display:flex;align-items:center;gap:4px"><i class="fas fa-code"></i> ${r.language}</span>`:''}
+      <span title="Diupdate" style="display:flex;align-items:center;gap:4px"><i class="fas fa-clock"></i> ${timeAgo(r.updated_at)}</span>
+    </div>
+    ${r.description||r.homepage?`<div style="padding:10px 15px;font-size:13px;color:var(--text2)">
+      ${r.description?`<p>${r.description}</p>`:''}
+      ${r.homepage?`<a href="${r.homepage}" target="_blank" style="font-size:12px;display:inline-flex;align-items:center;gap:4px;margin-top:4px;color:var(--accent)"><i class="fas fa-link"></i>${r.homepage}</a>`:''}
+    </div>`:''}`;
+  // Fetch real size async jika 0 (repo baru, API belum update)
+  if(sizeKB===0) fetchRepoRealSize();
+}
+
+async function fetchRepoRealSize(){
+  try{
+    // Hitung ukuran real dari semua file di tree
+    const treeData=await api(`/repos/${REPO.full_name}/git/trees/${BRANCH}?recursive=1`);
+    const items=treeData?.tree||[];
+    const totalBytes=items.filter(i=>i.type==='blob').reduce((s,i)=>s+(i.size||0),0);
+    const el=document.getElementById('repoSizeSpan');
+    if(!el)return;
+    let sizeStr;
+    if(totalBytes===0)sizeStr='< 1 KB';
+    else if(totalBytes<1024)sizeStr=`${totalBytes} B`;
+    else if(totalBytes<1048576)sizeStr=`${(totalBytes/1024).toFixed(1)} KB`;
+    else sizeStr=`${(totalBytes/1048576).toFixed(1)} MB`;
+    el.innerHTML=`<i class="fas fa-database"></i> ${sizeStr}`;
+  }catch(e){}
 }
 function switchDetailTab(tab,el){
   DETAIL_TAB=tab;
+  // Clear action poll timer kalau pindah dari tab actions
+  if(tab!=='actions'&&ACTION_POLL_TIMER){clearTimeout(ACTION_POLL_TIMER);ACTION_POLL_TIMER=null;}
   document.querySelectorAll('#detailTabs .tab').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
   document.querySelectorAll('.detail-panel').forEach(p=>p.classList.remove('active'));
@@ -1250,18 +1307,43 @@ function backToFiles(){
 }
 
 // ACTIONS
+let ACTION_POLL_TIMER=null;
+let SELECTED_RUNS=new Set();
+
 async function loadActions(){
+  // Clear any existing poll timer
+  if(ACTION_POLL_TIMER){clearTimeout(ACTION_POLL_TIMER);ACTION_POLL_TIMER=null;}
+  SELECTED_RUNS.clear();
   const el=document.getElementById('dp-actions');
   el.innerHTML=`<div class="loading"><div class="spinner"></div> Memuat actions...</div>`;
   try{
-    const [wfR,runR]=await Promise.all([api(`/repos/${REPO.full_name}/actions/workflows`),api(`/repos/${REPO.full_name}/actions/runs?per_page=20`)]);
-    renderActions(wfR?.workflows||[],runR?.workflow_runs||[]);
+    const [wfR,runR]=await Promise.all([
+      api(`/repos/${REPO.full_name}/actions/workflows`),
+      api(`/repos/${REPO.full_name}/actions/runs?per_page=30`)
+    ]);
+    const runs=runR?.workflow_runs||[];
+    renderActions(wfR?.workflows||[], runs);
+    // Auto-poll setiap 4 detik kalau ada run yg masih in_progress/queued
+    const hasActive=runs.some(r=>r.status==='in_progress'||r.status==='queued');
+    if(hasActive) ACTION_POLL_TIMER=setTimeout(()=>refreshRunsOnly(),4000);
   }catch(e){el.innerHTML=`<div class="empty"><i class="fas fa-play-circle"></i><h3>Gagal</h3><p>${e.message}</p></div>`;}
 }
+
+async function refreshRunsOnly(){
+  // Refresh hanya bagian run history tanpa rebuild seluruh halaman
+  if(!REPO)return;
+  if(ACTION_POLL_TIMER){clearTimeout(ACTION_POLL_TIMER);ACTION_POLL_TIMER=null;}
+  try{
+    const runR=await api(`/repos/${REPO.full_name}/actions/runs?per_page=30`);
+    const runs=runR?.workflow_runs||[];
+    renderRunHistory(runs);
+    const hasActive=runs.some(r=>r.status==='in_progress'||r.status==='queued');
+    if(hasActive) ACTION_POLL_TIMER=setTimeout(()=>refreshRunsOnly(),4000);
+  }catch(e){}
+}
+
 function renderActions(wfs,runs){
   const el=document.getElementById('dp-actions');
-  const stCls=s=>({'success':'ok','failure':'fail','in_progress':'run','queued':'idle','cancelled':'idle','skipped':'idle'}[s]||'idle');
-  const stIcon=s=>({'success':'✅','failure':'❌','in_progress':'🔄','queued':'⏳','cancelled':'🚫','skipped':'⏭️'}[s]||'⏳');
   const safeWfName=n=>n.replace(/'/g,"\\'").replace(/"/g,'&quot;');
 
   // WORKFLOW FILES
@@ -1287,48 +1369,198 @@ function renderActions(wfs,runs){
   }
   h+=`</div>`;
 
-  // RUN HISTORY
-  h+=`<div class="card"><div class="card-header"><i class="fas fa-history"></i><h3>Run History</h3><button class="btn btn-outline" onclick="loadActions()" style="padding:6px 10px;font-size:12px;margin-left:auto" title="Refresh"><i class="fas fa-rotate-right"></i></button></div>`;
-  if(!runs.length){
-    h+=`<div class="empty" style="padding:28px"><i class="fas fa-clock"></i><h3>Belum ada run</h3></div>`;
-  } else {
-    h+=runs.map(r=>{
-      const st=r.conclusion||r.status;
-      return`<div class="run-row" style="display:flex;align-items:center;gap:10px;padding:12px 15px;border-bottom:1px solid var(--border)">
-        <div class="wf-dot ${stCls(st)}"></div>
-        <div style="flex:1;min-width:0">
-          <div style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
-            ${r.name} <span style="font-size:10.5px;color:var(--text4);font-family:'JetBrains Mono',monospace">#${r.run_number}</span>
-          </div>
-          <div style="font-size:11.5px;color:var(--text4);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.head_branch} · ${r.event} · ${timeAgo(r.created_at)}</div>
-        </div>
-        <span style="font-size:16px;flex-shrink:0;line-height:1" title="${st}">${stIcon(st)}</span>
-        ${r.conclusion==='success'?`<button class="btn btn-outline" onclick="getArtifacts(${r.id})" style="padding:7px 10px;font-size:12px;flex-shrink:0" title="Download Artifacts"><i class="fas fa-download"></i></button>`:'<div style="width:36px"></div>'}
-        ${(r.status==='in_progress'||r.status==='queued')?`<button class="btn btn-red" onclick="cancelRun(${r.id})" style="padding:7px 10px;font-size:12px;flex-shrink:0" title="Stop"><i class="fas fa-stop"></i></button>`:`<button class="btn btn-outline" onclick="deleteRun(${r.id},this)" style="padding:7px 10px;font-size:12px;flex-shrink:0;color:var(--red);border-color:var(--red)" title="Hapus"><i class="fas fa-trash"></i></button>`}
-      </div>`;
-    }).join('');
-  }
-  h+=`</div>`;
+  // RUN HISTORY container
+  h+=`<div class="card" id="runHistoryCard">
+    <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);background:var(--bg4)">
+      <i class="fas fa-history" style="color:var(--accent);font-size:13px;flex-shrink:0"></i>
+      <span style="font-size:14px;font-weight:600;flex:1;min-width:0">Run History</span>
+      <div style="display:flex;gap:5px;align-items:center;flex-shrink:0">
+        <button class="btn-icon" id="btnSelectAll" onclick="toggleSelectAllRuns()" title="Pilih Semua" style="width:32px;height:32px;font-size:13px"><i class="fas fa-check-square"></i></button>
+        <button class="btn-icon" id="btnDeleteSelected" onclick="deleteSelectedRuns()" title="Hapus Dipilih" style="width:32px;height:32px;font-size:13px;display:none;color:var(--red);border-color:rgba(255,59,48,.35);position:relative">
+          <i class="fas fa-trash"></i>
+          <span id="selCount" style="position:absolute;top:-4px;right:-4px;background:var(--red);color:#fff;font-size:9px;font-weight:700;border-radius:99px;min-width:15px;height:15px;display:flex;align-items:center;justify-content:center;padding:0 3px;line-height:1">0</span>
+        </button>
+        <button class="btn-icon" id="btnDeleteAll" onclick="deleteAllRuns()" title="Hapus Semua" style="width:32px;height:32px;font-size:13px;color:var(--red)"><i class="fas fa-trash-alt"></i></button>
+        <button class="btn-icon" id="actRefreshBtn" onclick="loadActions()" title="Refresh" style="width:32px;height:32px;font-size:13px"><i class="fas fa-rotate-right"></i></button>
+      </div>
+    </div>
+    <div id="runHistoryBody"></div>
+  </div>`;
+
   el.innerHTML=h;
+  renderRunHistory(runs);
 }
+
+function renderRunHistory(runs){
+  const body=document.getElementById('runHistoryBody');
+  if(!body)return;
+  const stCls=s=>({'success':'ok','failure':'fail','in_progress':'run','queued':'run','cancelled':'idle','skipped':'idle'}[s]||'idle');
+  const stIcon=s=>({'success':'✅','failure':'❌','in_progress':'🔄','queued':'⏳','cancelled':'🚫','skipped':'⏭️'}[s]||'⏳');
+  if(!runs.length){
+    body.innerHTML=`<div class="empty" style="padding:28px"><i class="fas fa-clock"></i><h3>Belum ada run</h3></div>`;
+    return;
+  }
+  body.innerHTML=runs.map(r=>{
+    const st=r.conclusion||r.status;
+    const isActive=r.status==='in_progress'||r.status==='queued';
+    const isSel=SELECTED_RUNS.has(r.id);
+    return`<div class="run-row${isSel?' run-sel':''}" data-run-id="${r.id}" style="display:flex;align-items:center;gap:8px;padding:11px 15px;border-bottom:1px solid var(--border);transition:background .1s${isSel?';background:rgba(255,59,48,.06)':''}">
+      <input type="checkbox" class="run-chk" ${isSel?'checked':''} onchange="toggleRunSelect(${r.id},this)" style="width:16px;height:16px;accent-color:var(--red);flex-shrink:0;cursor:pointer">
+      <div class="wf-dot ${stCls(st)}" style="flex-shrink:0"></div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+          ${r.name} <span style="font-size:10.5px;color:var(--text4);font-family:'JetBrains Mono',monospace">#${r.run_number}</span>
+        </div>
+        <div style="font-size:11.5px;color:var(--text4);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.head_branch} · ${r.event} · ${timeAgo(r.created_at)}</div>
+      </div>
+      <span style="font-size:15px;flex-shrink:0;line-height:1" title="${st}">${stIcon(st)}</span>
+      ${r.conclusion==='success'?`<button class="btn btn-outline" onclick="getArtifacts(${r.id})" style="padding:6px 9px;font-size:12px;flex-shrink:0" title="Artifacts"><i class="fas fa-download"></i></button>`:'<div style="width:32px"></div>'}
+      ${isActive
+        ?`<button class="btn btn-red" onclick="cancelRun(${r.id},this)" style="padding:6px 9px;font-size:12px;flex-shrink:0" title="Stop"><i class="fas fa-stop"></i></button>`
+        :`<button class="btn btn-outline" onclick="deleteRun(${r.id},this)" style="padding:6px 9px;font-size:12px;flex-shrink:0;color:var(--red);border-color:rgba(255,59,48,.4)" title="Hapus"><i class="fas fa-trash"></i></button>`
+      }
+    </div>`;
+  }).join('');
+  updateSelectionUI();
+}
+
+function toggleRunSelect(id,chk){
+  if(chk.checked) SELECTED_RUNS.add(id);
+  else SELECTED_RUNS.delete(id);
+  // Update row highlight
+  const row=chk.closest('.run-row');
+  if(row){
+    row.style.background=chk.checked?'rgba(255,59,48,.06)':'';
+    if(chk.checked)row.classList.add('run-sel');
+    else row.classList.remove('run-sel');
+  }
+  updateSelectionUI();
+}
+
+function toggleSelectAllRuns(){
+  const chks=document.querySelectorAll('.run-chk');
+  const allChecked=SELECTED_RUNS.size===chks.length&&chks.length>0;
+  if(allChecked){
+    SELECTED_RUNS.clear();
+    chks.forEach(c=>{c.checked=false;const row=c.closest('.run-row');if(row)row.style.background='';});
+  }else{
+    chks.forEach(c=>{
+      const id=parseInt(c.closest('.run-row').dataset.runId);
+      SELECTED_RUNS.add(id);c.checked=true;
+      const row=c.closest('.run-row');if(row)row.style.background='rgba(255,59,48,.06)';
+    });
+  }
+  updateSelectionUI();
+}
+
+function updateSelectionUI(){
+  const btnDel=document.getElementById('btnDeleteSelected');
+  const cnt=document.getElementById('selCount');
+  const btnAll=document.getElementById('btnSelectAll');
+  if(!btnDel)return;
+  if(SELECTED_RUNS.size>0){
+    btnDel.style.display='flex';
+    btnDel.style.alignItems='center';
+    btnDel.style.justifyContent='center';
+    if(cnt)cnt.textContent=SELECTED_RUNS.size;
+  }else{
+    btnDel.style.display='none';
+  }
+  const chks=document.querySelectorAll('.run-chk');
+  const allChecked=chks.length>0&&SELECTED_RUNS.size===chks.length;
+  if(btnAll){
+    btnAll.style.color=allChecked?'var(--accent)':'var(--text3)';
+    btnAll.innerHTML=allChecked?'<i class="fas fa-times-square"></i>':'<i class="fas fa-check-square"></i>';
+  }
+}
+
+async function deleteSelectedRuns(){
+  if(!SELECTED_RUNS.size)return;
+  if(!await showConfirm(`Hapus ${SELECTED_RUNS.size} run yang dipilih?`,{title:'Hapus Run',icon:'🗑️',okLabel:'Hapus'}))return;
+  const ids=[...SELECTED_RUNS];
+  const btn=document.getElementById('btnDeleteSelected');
+  if(btn){btn.disabled=true;btn.innerHTML='<i class="fas fa-spinner fa-spin"></i>';}
+  let ok=0;
+  for(const id of ids){
+    try{
+      await api(`/repos/${REPO.full_name}/actions/runs/${id}`,'DELETE');
+      const row=document.querySelector(`.run-row[data-run-id="${id}"]`);
+      if(row)row.remove();
+      SELECTED_RUNS.delete(id);ok++;
+    }catch(e){}
+  }
+  toast(`${ok} run dihapus ✅`,'ok');
+  if(btn){btn.disabled=false;btn.innerHTML=`<i class="fas fa-trash"></i> <span id="selCount">${SELECTED_RUNS.size}</span>`;}
+  updateSelectionUI();
+  // Cek kalau semua sudah habis
+  if(!document.querySelectorAll('.run-row').length){
+    const body=document.getElementById('runHistoryBody');
+    if(body)body.innerHTML=`<div class="empty" style="padding:28px"><i class="fas fa-clock"></i><h3>Belum ada run</h3></div>`;
+  }
+}
+
+async function deleteAllRuns(){
+  const rows=document.querySelectorAll('.run-row');
+  if(!rows.length){toast('Tidak ada run','warn');return;}
+  if(!await showConfirm(`Hapus semua ${rows.length} run history?`,{title:'Hapus Semua Run',icon:'🗑️',okLabel:'Hapus Semua'}))return;
+  const btn=document.getElementById('btnDeleteAll');
+  if(btn){btn.disabled=true;btn.innerHTML='<i class="fas fa-spinner fa-spin"></i>';}
+  let ok=0;
+  for(const row of rows){
+    const id=parseInt(row.dataset.runId);
+    try{
+      await api(`/repos/${REPO.full_name}/actions/runs/${id}`,'DELETE');
+      row.remove();ok++;
+    }catch(e){}
+  }
+  toast(`${ok} run dihapus ✅`,'ok');
+  SELECTED_RUNS.clear();
+  if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-trash-alt"></i> Semua';}
+  const body=document.getElementById('runHistoryBody');
+  if(body)body.innerHTML=`<div class="empty" style="padding:28px"><i class="fas fa-clock"></i><h3>Belum ada run</h3></div>`;
+  updateSelectionUI();
+}
+
 async function triggerWf(id,name){
-  try{await api(`/repos/${REPO.full_name}/actions/workflows/${id}/dispatches`,'POST',{ref:BRANCH,inputs:{}});toast(`"${name}" di-trigger! 🚀`,'ok');setTimeout(loadActions,2000);}
-  catch(e){toast('Gagal: '+e.message,'err');}
+  try{
+    await api(`/repos/${REPO.full_name}/actions/workflows/${id}/dispatches`,'POST',{ref:BRANCH,inputs:{}});
+    toast(`"${name}" di-trigger! 🚀`,'ok');
+    // Poll setiap 3 detik sampai run baru muncul
+    let attempts=0;
+    const poll=async()=>{
+      attempts++;
+      await refreshRunsOnly();
+      const hasNew=document.querySelectorAll('.run-row').length>0;
+      if(!hasNew&&attempts<8)setTimeout(poll,3000);
+    };
+    setTimeout(poll,3000);
+  }catch(e){toast('Gagal: '+e.message,'err');}
 }
-async function cancelRun(id){
-  try{await api(`/repos/${REPO.full_name}/actions/runs/${id}/cancel`,'POST');toast('Dibatalkan','info');setTimeout(loadActions,1000);}
-  catch(e){toast('Gagal: '+e.message,'err');}
+async function cancelRun(id,btn){
+  try{
+    if(btn){btn.disabled=true;btn.innerHTML='<i class="fas fa-spinner fa-spin"></i>';}
+    await api(`/repos/${REPO.full_name}/actions/runs/${id}/cancel`,'POST');
+    toast('Dibatalkan','info');
+    setTimeout(()=>refreshRunsOnly(),1500);
+  }catch(e){
+    toast('Gagal: '+e.message,'err');
+    if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-stop"></i>';}
+  }
 }
 async function deleteRun(id,btn){
-  if(!confirm('Hapus run history ini?'))return;
+  if(!await showConfirm('Hapus run ini dari history?',{title:'Hapus Run',icon:'🗑️',okLabel:'Hapus'}))return;
   try{
     if(btn){btn.disabled=true;btn.innerHTML='<i class="fas fa-spinner fa-spin"></i>';}
     await api(`/repos/${REPO.full_name}/actions/runs/${id}`,'DELETE');
     toast('Run dihapus ✅','ok');
-    // Remove from DOM immediately
     const row=btn?btn.closest('.run-row'):null;
     if(row)row.remove();
-    else setTimeout(loadActions,500);
+    SELECTED_RUNS.delete(id);
+    updateSelectionUI();
+    if(!document.querySelectorAll('.run-row').length){
+      const body=document.getElementById('runHistoryBody');
+      if(body)body.innerHTML=`<div class="empty" style="padding:28px"><i class="fas fa-clock"></i><h3>Belum ada run</h3></div>`;
+    }
   }catch(e){
     toast('Gagal hapus: '+e.message,'err');
     if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-trash"></i>';}
@@ -1440,7 +1672,7 @@ function updateBranchPill(){
   if(pill)pill.innerHTML=`<i class="fas fa-code-branch"></i> ${BRANCH}`;
 }
 async function delBranch(name){
-  if(!confirm(`Hapus branch "${name}"?`))return;
+  if(!await showConfirm(`Hapus branch "${name}"? Tindakan ini tidak bisa dibatalkan.`,{title:'Hapus Branch',icon:'🌿',okLabel:'Hapus'}))return;
   try{await api(`/repos/${REPO.full_name}/git/refs/heads/${name}`,'DELETE');toast(`"${name}" dihapus`,'ok');loadBranches();}
   catch(e){toast('Gagal: '+e.message,'err');}
 }
@@ -1476,7 +1708,7 @@ async function saveSettings(){
   }catch(e){toast('Gagal: '+e.message,'err');}
 }
 async function archiveRepo(){
-  if(!confirm('Arsipkan repo ini?'))return;
+  if(!await showConfirm('Arsipkan repo ini?',{title:'Arsipkan',icon:'📦',okLabel:'Arsipkan',okClass:'confirm-ok-blue'}))return;
   try{await api(`/repos/${REPO.full_name}`,'PATCH',{archived:true});toast('Diarsipkan','ok');}
   catch(e){toast('Gagal: '+e.message,'err');}
 }
@@ -1521,7 +1753,7 @@ async function loadGists(){
   }catch(e){toast('Gagal load gists: '+e.message,'err');}
 }
 async function delGist(id){
-  if(!confirm('Hapus gist ini?'))return;
+  if(!await showConfirm('Hapus gist ini?',{title:'Hapus Gist',icon:'🗑️',okLabel:'Hapus'}))return;
   try{await api(`/gists/${id}`,'DELETE');toast('Gist dihapus','ok');loadGists();}
   catch(e){toast('Gagal: '+e.message,'err');}
 }
@@ -1952,15 +2184,22 @@ async function doUpload(){
       const baseCommit=await api(`/repos/${REPO.full_name}/git/commits/${baseSha}`);
       baseTree=baseCommit.tree.sha;
     }catch(refErr){
-      // Repo benar-benar kosong - GitHub Git Data API (blobs/trees) tidak bisa dipakai
-      // sama sekali sebelum ada 1 commit. Satu-satunya cara: gunakan Contents API
-      // untuk file pertama yang akan otomatis init repo + buat HEAD.
-      addLog('info','📭 Repo kosong → inisialisasi dengan file pertama...');
-      const firstFile=files[0];
+      // Repo benar-benar kosong - GitHub Git Data API tidak bisa dipakai sama sekali
+      // sebelum ada 1 commit. Gunakan Contents API untuk file pertama.
+      // PENTING: pilih file yang BUKAN .github/workflows/ sebagai file init
+      // supaya commit pertama tidak trigger workflow (hanya commit kedua yang trigger = 1x total)
+      addLog('info','📭 Repo kosong → inisialisasi repo...');
+      
+      // Cari file yang bukan workflow untuk dijadikan init commit
+      let initIdx = files.findIndex(f => !f.rpath.startsWith('.github/'));
+      if(initIdx === -1) initIdx = 0; // kalau semua file workflow, terpaksa pakai index 0
+      const firstFile = files[initIdx];
+      // Pindahkan file init ke depan
+      files = [firstFile, ...files.filter((_,i) => i !== initIdx)];
+      
       bar.style.width='5%';
-      // Upload file pertama via Contents API (ini akan init repo sekaligus)
       await api(`/repos/${REPO.full_name}/contents/${firstFile.rpath}`,'PUT',{
-        message:msg,
+        message:'chore: init repository',
         content:upAb2b64(firstFile.content),
         branch:BRANCH
       });
@@ -2151,13 +2390,14 @@ async function refreshRepoDetail(){
 }
 async function reloadEditorFile(){
   if(!EDIT_FILE||!EDIT_FILE.path)return;
-  if(!confirm('Reload file dari GitHub? Perubahan yang belum disimpan akan hilang.'))return;
+  if(!await showConfirm('Reload file? Perubahan yang belum disimpan akan hilang.',{title:'Reload File',icon:'🔄',okLabel:'Reload',okClass:'confirm-ok-blue'}))return;
   toast('Memuat ulang file...','info');
   await openFile(EDIT_FILE.path);
 }
 
 // NAVIGATION
 function showPage(name){
+  if(ACTION_POLL_TIMER&&name!=='detail'){clearTimeout(ACTION_POLL_TIMER);ACTION_POLL_TIMER=null;}
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   const p=document.getElementById('page-'+name);
   if(p)p.classList.add('active');
@@ -2191,6 +2431,25 @@ function setBreadcrumb(text,isRepo=false){
   }
 }
 
+// CUSTOM CONFIRM DIALOG
+let _confirmResolve=null;
+function showConfirm(msg,{title='Konfirmasi',icon='⚠️',okLabel='Hapus',okClass='confirm-ok'}={}){
+  return new Promise(resolve=>{
+    _confirmResolve=(v)=>{
+      document.getElementById('confirmOverlay').classList.remove('show');
+      _confirmResolve=null;
+      resolve(v);
+    };
+    document.getElementById('confirmIcon').textContent=icon;
+    document.getElementById('confirmTitle').textContent=title;
+    document.getElementById('confirmMsg').textContent=msg;
+    const okBtn=document.getElementById('confirmOk');
+    okBtn.textContent=okLabel;
+    okBtn.className=okClass;
+    document.getElementById('confirmOverlay').classList.add('show');
+  });
+}
+
 // SIDEBAR
 function toggleSidebar(){
   const s=document.getElementById('sidebar'),o=document.getElementById('sidebarOverlay');
@@ -2203,12 +2462,32 @@ function closeSidebar(){
 
 // MODAL
 function showModal(title,body,buttons=[]){
-  document.getElementById('modalTitle').textContent=title;
-  document.getElementById('modalBody').innerHTML=body;
-  document.getElementById('modalFooter').innerHTML=buttons.map(b=>`<button class="btn ${b.cls||'btn-accent'}" onclick="${b.fn}">${b.label}</button>`).join('');
-  document.getElementById('modalOverlay').classList.add('show');
+  const overlay=document.getElementById('modalOverlay');
+  const titleEl=document.getElementById('modalTitle');
+  const bodyEl=document.getElementById('modalBody');
+  const footerEl=document.getElementById('modalFooter');
+  // Simpan konten untuk di-render setelah animasi selesai
+  titleEl.textContent=title;
+  bodyEl.innerHTML=`<div style="padding:20px 0;display:flex;flex-direction:column;gap:12px">
+    <div style="height:14px;background:var(--bg3);border-radius:7px;width:40%"></div>
+    <div style="height:44px;background:var(--bg3);border-radius:10px"></div>
+    <div style="height:14px;background:var(--bg3);border-radius:7px;width:30%"></div>
+    <div style="height:44px;background:var(--bg3);border-radius:10px"></div>
+    <div style="height:14px;background:var(--bg3);border-radius:7px;width:35%"></div>
+    <div style="height:44px;background:var(--bg3);border-radius:10px"></div>
+  </div>`;
+  footerEl.innerHTML='';
+  // Tampilkan overlay dulu — animasi berjalan dengan skeleton ringan
+  overlay.classList.add('show');
+  // Render konten asli setelah animasi selesai (~260ms)
+  setTimeout(()=>{
+    bodyEl.innerHTML=body;
+    footerEl.innerHTML=buttons.map(b=>`<button class="btn ${b.cls||'btn-accent'}" onclick="${b.fn}">${b.label}</button>`).join('');
+  }, 260);
 }
-function closeModal(){document.getElementById('modalOverlay').classList.remove('show');}
+function closeModal(){
+  document.getElementById('modalOverlay').classList.remove('show');
+}
 function closeModalOutside(e){if(e.target===document.getElementById('modalOverlay'))closeModal();}
 
 // TOAST
